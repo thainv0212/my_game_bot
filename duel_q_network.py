@@ -24,6 +24,10 @@ class DDDQN(tf.keras.Model):
         self.d3 = tf.keras.layers.Dense(64, activation='relu')
         self.v = tf.keras.layers.Dense(1, activation=None)
         self.a = tf.keras.layers.Dense(action_space_num, activation=None)
+        # x = np.random.normal(size=(6144, ))
+        # x = np.expand_dims(np.array(x).transpose().flatten(), axis=0)
+        # x = tf.convert_to_tensor(x)
+        # _ = self.call(x)
 
     def call(self, input_data):
         x = self.d1(input_data)
@@ -37,6 +41,7 @@ class DDDQN(tf.keras.Model):
     def advantage(self, state):
         x = self.d1(state)
         x = self.d2(x)
+        x = self.d3(x)
         a = self.a(x)
         return a
 
@@ -72,6 +77,7 @@ class exp_replay():
         self.done_mem[idx] = 1 - int(done)
         self.pointer += 1
 
+
     def sample_exp(self, batch_size=64):
         max_mem = min(self.pointer, self.buffer_size)
         batch = np.random.choice(max_mem, batch_size, replace=False)
@@ -88,16 +94,16 @@ class agent():
         self.gamma = gamma
         self.epsilon = epsilon
         self.min_epsilon = 0.3
-        self.epsilon_decay = 1e-4
+        self.epsilon_decay = 1e-3
         self.replace = replace
         self.trainstep = 0
         self.memory = exp_replay()
         self.batch_size = 64
         self.q_net = DDDQN()
-        # self.target_net = DDDQN()
+        self.target_net = DDDQN()
         opt = tf.keras.optimizers.Adam(learning_rate=lr)
         self.q_net.compile(loss='mse', optimizer=opt)
-        # self.target_net.compile(loss='mse', optimizer=opt)
+        self.target_net.compile(loss='mse', optimizer=opt)
 
     def act(self, state):
         print('give action with epsilon {}'.format(self.epsilon))
@@ -105,21 +111,25 @@ class agent():
             return np.random.choice([i for i in range(action_space_num)])
         else:
             try:
-                actions = advantage(self.q_net, np.array([np.array(state).transpose().flatten()]))
-
+                # actions = advantage(self.q_net, np.array([np.array(state).transpose().flatten()]))
+                # test = self.q_net(np.array([np.array(state).transpose().flatten()]))
+                np_state = np.expand_dims(np.array(state).transpose().flatten(), axis=0)
+                actions = self.q_net.advantage(np_state)
+                test = self.q_net(np_state)
+                test = np.argmax(test)
                 action = np.argmax(actions)
+                print('action', action, test)
                 # print('return action', action)
             except Exception as ex:
                 action = np.random.choice([i for i in range(action_space_num)])
-                print(ex)
-            print('action', action)
+                raise ex
             return action
 
     def update_mem(self, state, action, reward, next_state, done):
         self.memory.add_exp(state, action, reward, next_state, done)
 
-    # def update_target(self):
-    #     self.target_net.set_weights(self.q_net.get_weights())
+    def update_target(self):
+        self.target_net.set_weights(self.q_net.get_weights())
 
     def update_epsilon(self):
         self.epsilon = self.epsilon - self.epsilon_decay if self.epsilon > self.min_epsilon else self.min_epsilon
@@ -129,12 +139,14 @@ class agent():
         if self.memory.pointer < self.batch_size:
             return
 
-        # if self.trainstep % self.replace == 0:
-        #     self.update_target()
+        if self.trainstep % self.replace == 0:
+            self.update_target()
         states, actions, rewards, next_states, dones = self.memory.sample_exp(self.batch_size)
+        # states = np.expand_dims(states, axis=2)
+        # next_states = np.expand_dims(next_states, axis=2)
         target = self.q_net.predict(states)
-        # next_state_val = self.target_net.predict(next_states)
-        next_state_val = self.q_net.predict(next_states)
+        next_state_val = self.target_net.predict(next_states)
+        # next_state_val = self.q_net.predict(next_states)
         max_action = np.argmax(self.q_net.predict(next_states), axis=1)
         batch_index = np.arange(self.batch_size, dtype=np.int32)
         q_target = np.copy(target)
@@ -144,15 +156,22 @@ class agent():
         self.trainstep += 1
 
     def save_model(self):
+        self.q_net.save_weights('duel_model', save_format='tf')
+        self.target_net.save_weights('duel_model_target', save_format='tf')
         # self.q_net.save_weights("weights", save_format='tf')
-        self.q_net.save('model.h5py', save_format='tf')
+        # self.q_net.save('duel_model.h5')
+        # self.target_net.save('duel_model_target.h5')
         # self.target_net.save("target_model.h5")
 
     def load_model(self):
-        tmp = load_model("model.h5py")
-        self.q_net = tmp
-        # self.q_net.load_weights("weights")
-        # self.target_net = load_model("model.h5")
+        self.q_net.load_weights('duel_model')
+        self.target_net.load_weights('duel_model_target')
+        # tmp = load_model("duel_model.h5")
+        # self.q_net = tmp
+        # tmp = load_model('duel_model_target.h5')
+        # self.target_net = tmp
+        # # self.q_net.load_weights("weights")
+        # # self.target_net = load_model("model.h5")
 
     def save_memory(self):
         dill.dump(self.memory, open('memory.pkl', 'wb'))
@@ -224,49 +243,50 @@ def train():
 import sys
 import os
 
-if __name__ == '__main__':
-    arg = sys.argv[1]
-    if arg == 'run':
-        epsilon = 0.3 if len(sys.argv) <= 2 else float(sys.argv[2])
-        # try:
-        #     os.remove('train_data.txt')
-        # except:
-        #     pass
-        print('run with eploit rate', epsilon)
-        create_data(epsilon)
-    else:
-        train()
+# if __name__ == '__main__':
+#     arg = sys.argv[1]
+#     if arg == 'run':
+#         epsilon = 0.3 if len(sys.argv) <= 2 else float(sys.argv[2])
+#         # try:
+#         #     os.remove('train_data.txt')
+#         # except:
+#         #     pass
+#         print('run with eploit rate', epsilon)
+#         create_data(epsilon)
+#     else:
+#         train()
 
 ########
-# agentoo7 = agent()
-# try:
-#     agentoo7.load_model()
-#     agentoo7.load_memory()
-# except Exception as ex:
-#     print(ex)
-#     agentoo7 = agent()
-# steps = 400
-# env = gym.make("FightingiceDisplayNoFrameskip-v0", java_env_path=gym_env_path, port=4242, freq_restart_java=100)
-# for s in range(steps):
-#     done = False
-#     try:
-#         state, _, _, _ = env.reset()
-#     except:
-#         state = env.reset()
-#     total_reward = 0
-#     while not done:
-#         env.render()
-#         if len(state) == 4:
-#             state = state[0]
-#         action = agentoo7.act(state)
-#         next_state, reward, done, _ = env.step(action)
-#         agentoo7.update_mem(state, action, reward, next_state, done)
-#         agentoo7.train()
-#         state = next_state
-#         total_reward += reward
-# 
-#         if done:
-#             print("total reward after {} episode is {} and epsilon is {}".format(s, total_reward, agentoo7.epsilon))
-#     print('Save model')
-#     agentoo7.save_model()
-#     agentoo7.save_memory()
+epsilon = 1.0
+agentoo7 = agent(epsilon=epsilon)
+try:
+    agentoo7.load_model()
+    agentoo7.load_memory()
+except Exception as ex:
+    print(ex)
+    agentoo7 = agent(epsilon=epsilon)
+steps = 400
+env = gym.make("FightingiceDisplayNoFrameskip-v0", java_env_path=gym_env_path, port=4242, freq_restart_java=1)
+for s in range(steps):
+    done = False
+    try:
+        state, _, _, _ = env.reset()
+    except:
+        state = env.reset()
+    total_reward = 0
+    while not done:
+        env.render()
+        if len(state) == 4:
+            state = state[0]
+        action = agentoo7.act(state)
+        next_state, reward, done, _ = env.step(action)
+        agentoo7.update_mem(state, action, reward, next_state, done)
+        agentoo7.train()
+        state = next_state
+        total_reward += reward
+
+        if done:
+            print("total reward after {} episode is {} and epsilon is {}".format(s, total_reward, agentoo7.epsilon))
+    print('Save model')
+    agentoo7.save_model()
+    agentoo7.save_memory()
