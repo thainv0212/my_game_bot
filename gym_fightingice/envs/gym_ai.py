@@ -116,11 +116,13 @@ class GymAI(object):
                 p2_hp_now = self.frameData.getCharacter(False).getHp()
                 p1_hp_now = self.frameData.getCharacter(True).getHp()
                 if self.player:
-                    reward = (p2_hp_pre-p2_hp_now) - (p1_hp_pre-p1_hp_now)
+                    reward = (p2_hp_pre-p2_hp_now) - (p1_hp_pre-p1_hp_now)# + (p1_hp_now - p2_hp_now)
                 else:
-                    reward = (p1_hp_pre-p1_hp_now) - (p2_hp_pre-p2_hp_now)
+                    reward = (p1_hp_pre-p1_hp_now) - (p2_hp_pre-p2_hp_now)# + (p2_hp_now - p1_hp_now)
         except:
             reward = 0
+        if reward <= 0:
+            reward -= 10
         return reward
 
     def get_obs(self):
@@ -268,7 +270,6 @@ class GymAI(object):
 
         observation = np.array(observation, dtype=np.float32)
         observation = np.clip(observation, 0, 1)
-        print('get observation')
         return observation
 
     # This part is mandatory
