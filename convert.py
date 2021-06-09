@@ -1,7 +1,7 @@
 import dill
 import numpy as np
 import pickle
-from duel_q_network import agent
+from train_ddqn import AgentWithNormalMemory
 from tensorflow.python.keras.activations import relu, linear
 
 from datetime import datetime
@@ -93,7 +93,7 @@ class MyPyNetwork:
 
 
 if __name__ == '__main__':
-    my_agent = agent()
+    my_agent = AgentWithNormalMemory()
     my_agent.load_model()
     print('init agent')
     my_network = MyPyNetwork()
