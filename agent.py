@@ -71,7 +71,7 @@ class AgentWithNormalMemory():
         max_action = np.argmax(self.q_net.predict(next_states), axis=1)
         batch_index = np.arange(self.batch_size, dtype=np.int32)
         q_target = np.copy(target)
-        q_target[batch_index, actions] = rewards + self.gamma * next_state_val[batch_index, max_action] * dones
+        q_target[batch_index, actions] = rewards + self.gamma * next_state_val[batch_index, max_action] * (1 - dones)
         self.q_net.train_on_batch(states, q_target)
         self.update_epsilon()
         self.trainstep += 1
