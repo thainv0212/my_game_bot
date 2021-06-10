@@ -67,7 +67,7 @@ def train_with_agent(agent, epsilon):
         print(ex)
         agentoo7 = agent(epsilon=epsilon)
     steps = 400
-    env = gym.make("FightingiceDataNoFrameskip-v0", java_env_path=gym_env_path, port=8888, freq_restart_java=4)
+    env = gym.make("FightingiceDataNoFrameskip-v0", java_env_path=gym_env_path, freq_restart_java=4)
     for s in range(steps):
         done = False
         try:
