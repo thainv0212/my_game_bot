@@ -112,7 +112,7 @@ class FightingiceEnv_Data_NoFrameskip(gym.Env):
                                           "--grey-bg", "--inverted-player", "1", "--mute", "--limithp", "400", "400"], stdout=devnull, stderr=devnull)
         elif self.system_name == "linux":
             self.java_env = subprocess.Popen(["java", "-cp", self.start_up_str, "Main", "--port", str(self.port), "--py4j", "--fastmode",
-                                            "--grey-bg", "--inverted-player", "1", "--mute", "--limithp", "400", "400"], stdout=open('log.txt', 'a'), stderr=open('error.txt', 'a'))
+                                            "--grey-bg", "--inverted-player", "1", "--mute", "--limithp", "400", "400", '--disable-window'], stdout=open('log.txt', 'a'), stderr=open('error.txt', 'a'))
             print(' '.join(["java", "-cp", self.start_up_str, "Main", "--port", str(self.port), "--py4j", "--fastmode",
                                             "--grey-bg", "--inverted-player", "1", "--mute", "--limithp", "400", "400"]))
         elif self.system_name == "macos":

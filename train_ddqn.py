@@ -51,84 +51,13 @@ def advantage(model, state):
 
 
 observation_space_shape = (143)
-
-
-
-
-
 experience = []
 import json
-
-
-def create_data(epsilon=1):
-    env = gym.make("FightingiceDisplayNoFrameskip-v0", java_env_path=gym_env_path, port=4242, freq_restart_java=3)
-    obs = env.reset()
-    low = env.observation_space.low
-    high = env.observation_space.high
-    agentoo7 = AgentWithNormalMemory(epsilon=epsilon)
-    agentoo7.load_model()
-    while True:
-        state, reward, done, _ = env.reset()
-        done = False
-        total_reward = 0
-        while not done:
-            action = agentoo7.act(state)
-            # action = numpy.random.randint(0, env.action_space.n)
-            next_state, reward, done, _ = env.step(action)
-            if next_state is not None and state is not None:
-                with open('train_data.txt', 'a') as f:
-                    f.write('{}\t{}\t{}\t{}\t{}\n'.format(json.dumps(state.squeeze().tolist()), action, reward,
-                                                          json.dumps(next_state.squeeze().tolist()), json.dumps(done)))
-            # experience.append([state, action, reward, next_state, done])
-            # agentoo7.update_mem(state, action, reward, next_state, done)
-            # agentoo7.train()
-            state = next_state
-            total_reward += reward
-            if done:
-                print("total reward after is {}".format(total_reward))
-    print('finish')
-
-
 import pandas as pd
 from tqdm import tqdm
 from agent import AgentWithNormalMemory, AgentWithPER
+from datetime import datetime
 
-def train():
-    agentoo7 = AgentWithNormalMemory()
-    try:
-        agentoo7.load_model()
-    except Exception as ex:
-        print(ex)
-    with open('train_data.txt', 'r') as f:
-        data = f.readlines()
-        # data = data[:200]
-        for line in tqdm(data[::-1]):
-            state, action, reward, next_state, done = line.split('\t')
-            state = np.array(json.loads(state))
-            done = json.loads(done)
-            next_state = np.array(json.loads(next_state))
-            agentoo7.update_mem(state, action, reward, next_state, done)
-            agentoo7.train()
-        agentoo7.save_model()
-
-
-import sys
-import os
-
-# if __name__ == '__main__':
-#     arg = sys.argv[1]
-#     if arg == 'run':
-#         epsilon = 0.3 if len(sys.argv) <= 2 else float(sys.argv[2])
-#         # try:
-#         #     os.remove('train_data.txt')
-#         # except:
-#         #     pass
-#         print('run with eploit rate', epsilon)
-#         create_data(epsilon)
-#     else:
-#         train()
-
-########
 if __name__ == '__main__':
     epsilon = 1.0
     agentoo7 = AgentWithPER(epsilon=epsilon)
@@ -147,6 +76,7 @@ if __name__ == '__main__':
         except:
             state = env.reset(p2='MctsAi')
         total_reward = 0
+        start_time = datetime.now()
         while not done:
             env.render()
             if len(state) == 4:
@@ -160,6 +90,8 @@ if __name__ == '__main__':
 
             if done:
                 print("total reward after {} episode is {} and epsilon is {}".format(s, total_reward, agentoo7.epsilon))
-        print('Save model')
-        agentoo7.save_model()
-        agentoo7.save_memory()
+                print("time for an episode {}", datetime.now() - start_time)
+                print('Save model')
+                agentoo7.save_model()
+                agentoo7.save_memory()
+

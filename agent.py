@@ -28,7 +28,7 @@ class AgentWithNormalMemory():
         self.action_space_num = action_space_num
 
     def act(self, state):
-        print('give action with epsilon {}'.format(self.epsilon))
+        # print('give action with epsilon {}'.format(self.epsilon))
         if np.random.rand() <= self.epsilon or state is None:
             return np.random.choice([i for i in range(self.action_space_num)])
         else:
@@ -40,7 +40,7 @@ class AgentWithNormalMemory():
                 np_state = np.expand_dims(np_state, axis=0)
                 actions = advantage(self.q_net, np_state)
                 action = np.argmax(actions)
-                print('action', action)
+                # print('action', action)
                 # print('return action', action)
             except Exception as ex:
                 action = np.random.choice([i for i in range(self.action_space_num)])
@@ -150,7 +150,7 @@ class AgentWithPER(AgentWithNormalMemory):
         q_target = np.copy(target)
         q_target[batch_index, actions] = rewards + self.gamma * next_state_val[batch_index, max_action] * (1 - dones)
         loss = self.q_net.train_on_batch(states, q_target, is_weights)
-        print('loss on training', loss)
+        # print('loss on training', loss)
         self.update_epsilon()
         # update memory
         self.memory.batch_update(b_idx, absolute_errors.mean(axis=1))
