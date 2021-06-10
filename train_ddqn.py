@@ -58,15 +58,14 @@ from tqdm import tqdm
 from agent import AgentWithNormalMemory, AgentWithPER
 from datetime import datetime
 
-if __name__ == '__main__':
-    epsilon = 1.0
-    agentoo7 = AgentWithPER(epsilon=epsilon)
+def train_with_agent(agent, epsilon):
+    agentoo7 = agent(epsilon=epsilon)
     try:
         agentoo7.load_model()
         agentoo7.load_memory()
     except Exception as ex:
         print(ex)
-        agentoo7 = AgentWithPER(epsilon=epsilon)
+        agentoo7 = agent(epsilon=epsilon)
     steps = 400
     env = gym.make("FightingiceDataNoFrameskip-v0", java_env_path=gym_env_path, port=8888, freq_restart_java=4)
     for s in range(steps):
@@ -94,4 +93,8 @@ if __name__ == '__main__':
                 print('Save model')
                 agentoo7.save_model()
                 agentoo7.save_memory()
+if __name__ == '__main__':
+    epsilon = 1.0
+    agent = AgentWithPER
+    train_with_agent(agent, epsilon)
 
