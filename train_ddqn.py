@@ -1,3 +1,4 @@
+# PYTHON_ARGCOMPLETE_OK
 import numpy.random
 import tensorflow as tf
 import numpy as np
@@ -8,7 +9,7 @@ from memory import NormalMemory
 gym_env_path = '/home/thai/eclipse-workspace/FightingICEv4.5'
 # java_env_path='/home/thai/jdk1.8.0_271/bin/java'
 import gym_fightingice
-
+import argparse
 action_space_num = 56
 
 
@@ -57,6 +58,7 @@ import pandas as pd
 from tqdm import tqdm
 from agent import AgentWithNormalMemory, AgentWithPER
 from datetime import datetime
+import argcomplete
 
 def train_with_agent(agent, epsilon):
     agentoo7 = agent(epsilon=epsilon)
@@ -94,7 +96,18 @@ def train_with_agent(agent, epsilon):
                 agentoo7.save_model()
                 agentoo7.save_memory()
 if __name__ == '__main__':
-    epsilon = 1.0
-    agent = AgentWithPER
+    # epsilon = 1.0
+    # agent = AgentWithPER
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--epsilon', type=float, default=1.0)
+    parser.add_argument('--agent', type=str, choices=['normal', 'per'], required=True)
+    argcomplete.autocomplete(parser)
+    args = parser.parse_args()
+    epsilon = args.epsilon
+    agents = {
+        'normal': AgentWithNormalMemory,
+        'per': AgentWithPER,
+    }
+    agent = agents[args.agent]
     train_with_agent(agent, epsilon)
 
