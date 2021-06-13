@@ -20,6 +20,7 @@ class GymAI(object):
         self.pre_framedata = None
 
         self.frameskip = frameskip
+        self.simulator = None
 
     def close(self):
         pass
@@ -31,6 +32,7 @@ class GymAI(object):
 
         self.player = player
         self.gameData = gameData
+        self.simulator = gameData.getSimulator()
 
         return 0
 
@@ -66,7 +68,8 @@ class GymAI(object):
         if self.frameData.getEmptyFlag() or self.frameData.getRemainingTime() <= 0:
             self.isGameJustStarted = True
             return
-
+        frame = self.simulator.simulate(self.frameData, self.player, None, None, 13)
+        # print(frame)
         if self.frameskip:
             if self.cc.getSkillFlag():
                 self.inputKey = self.cc.getSkillKey()

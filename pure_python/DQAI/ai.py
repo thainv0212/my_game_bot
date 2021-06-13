@@ -11,6 +11,7 @@ class MyAI:
         self.my_network.load('DQAI/my_network.pickle')
         self.action_map = ActionMap()
         self.isControl = None
+        self.simulator = None
 
     def close(self):
         pass
