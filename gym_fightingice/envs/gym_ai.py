@@ -3,7 +3,7 @@ from py4j.java_gateway import get_field
 
 
 class GymAI(object):
-    def __init__(self, gateway, pipe, frameskip=True):
+    def __init__(self, gateway, pipe, frameskip=True, simulate=True):
         self.gateway = gateway
         self.pipe = pipe
 
@@ -21,6 +21,7 @@ class GymAI(object):
 
         self.frameskip = frameskip
         self.simulator = None
+        self.simulate = simulate
 
     def close(self):
         pass
@@ -68,7 +69,8 @@ class GymAI(object):
         if self.frameData.getEmptyFlag() or self.frameData.getRemainingTime() <= 0:
             self.isGameJustStarted = True
             return
-        frame = self.simulator.simulate(self.frameData, self.player, None, None, 13)
+        if self.simulate:
+            frame = self.simulator.simulate(self.frameData, self.player, None, None, 13)
         # print(frame)
         if self.frameskip:
             if self.cc.getSkillFlag():
@@ -127,8 +129,16 @@ class GymAI(object):
         return reward
 
     def get_obs(self):
-        my = self.frameData.getCharacter(self.player)
-        opp = self.frameData.getCharacter(not self.player)
+        curr_obs = self.get_dataframe_obs(self.frameData)
+        if self.simulate:
+            next_frame = self.simulator.simulate(self.frameData, self.player, None, None, 15)
+            next_frame_obs = self.get_dataframe_obs(next_frame)
+            curr_obs = np.append(curr_obs, next_frame_obs)
+        return curr_obs
+
+    def get_dataframe_obs(self, frame_data):
+        my = frame_data.getCharacter(self.player)
+        opp = frame_data.getCharacter(not self.player)
 
         # my information
         myHp = abs(my.getHp() / 400)
@@ -151,7 +161,7 @@ class GymAI(object):
         oppRemainingFrame = opp.getRemainingFrame() / 70
 
         # time information
-        game_frame_num = self.frameData.getFramesNumber() / 3600
+        game_frame_num = frame_data.getFramesNumber() / 3600
 
         observation = []
 
@@ -202,8 +212,8 @@ class GymAI(object):
         # time information
         observation.append(game_frame_num)
 
-        myProjectiles = self.frameData.getProjectilesByP1()
-        oppProjectiles = self.frameData.getProjectilesByP2()
+        myProjectiles = frame_data.getProjectilesByP1()
+        oppProjectiles = frame_data.getProjectilesByP2()
 
         if len(myProjectiles) == 2:
             myHitDamage = myProjectiles[0].getHitDamage() / 200.0
@@ -272,7 +282,6 @@ class GymAI(object):
         observation = np.array(observation, dtype=np.float32)
         observation = np.clip(observation, 0, 1)
         return observation
-
     # This part is mandatory
     class Java:
         implements = ["aiinterface.AIInterface"]
