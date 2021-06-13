@@ -98,14 +98,16 @@ class AgentWithNormalMemory():
         # # self.target_net = load_model("model.h5")
 
     def save_memory(self):
+        print('save memory')
         dill.dump(self.memory, open('memory.pkl', 'wb'))
 
     def load_memory(self):
         try:
             memory = dill.load(open('memory.pkl', 'rb'))
             self.memory = memory
-        except:
-            pass
+            print('load memory')
+        except Exception as ex:
+            print(ex)
 
     def set_trainable(self, trainable):
         self.q_net.trainable = trainable
@@ -122,7 +124,7 @@ class AgentWithPER(AgentWithNormalMemory):
         self.epsilon_decay = 1e-5
         self.replace = replace
         self.trainstep = 0
-        self.memory = PERMemory(capacity=100000)
+        self.memory = PERMemory(capacity=1000)
         self.batch_size = 64
         self.q_net = PERDDDQN()
         self.target_net = PERDDDQN()
@@ -130,13 +132,19 @@ class AgentWithPER(AgentWithNormalMemory):
         self.q_net.compile(loss='mse', optimizer=opt)
         self.target_net.compile(loss='mse', optimizer=opt)
         self.action_space_num = action_space_num
+        try:
+            self.load_model()
+            self.load_memory()
+        except:
+            pass
 
     def train(self):
-        if self.memory.tree.data_pointer < self.batch_size:
-            return
+        # if self.memory.tree.data_pointer < self.batch_size:
+        #     return
 
-        if self.trainstep % self.replace == 0:
-            self.update_target()
+        # if self.trainstep % self.replace == 0:
+        #     self.update_target()
+        self.update_target()
         b_idx, experiences, is_weights = self.memory.sample(self.batch_size)
         states = np.array([each[0][0] for each in experiences])
         actions = np.array([each[0][1] for each in experiences])
