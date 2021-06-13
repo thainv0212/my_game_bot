@@ -6,6 +6,7 @@ from ddqn import DDDQN, PERDDDQN
 from ddqn import advantage
 from memory import NormalMemory, PERMemory
 
+import tensorflow as tf
 from tensorflow.keras.models import load_model, save_model
 
 
@@ -23,8 +24,10 @@ class AgentWithNormalMemory():
         self.q_net = DDDQN()
         self.target_net = DDDQN()
         opt = tf.keras.optimizers.Adam(learning_rate=lr)
-        self.q_net.compile(loss='mse', optimizer=opt)
-        self.target_net.compile(loss='mse', optimizer=opt)
+        # self.q_net.compile(loss='mse', optimizer=opt)
+        # self.target_net.compile(loss='mse', optimizer=opt)
+        self.q_net.compile(loss=tf.keras.losses.Huber(), optimizer=opt)
+        self.target_net.compile(loss=tf.keras.losses.Huber(), optimizer=opt)
         self.action_space_num = action_space_num
 
     def act(self, state):
@@ -104,6 +107,9 @@ class AgentWithNormalMemory():
         except:
             pass
 
+    def set_trainable(self, trainable):
+        self.q_net.trainable = trainable
+        self.target_net.trainable = trainable
 
 class AgentWithPER(AgentWithNormalMemory):
     def __init__(self, gamma=0.1, replace=100, lr=0.01, epsilon=1.0, action_space_num=(56)):

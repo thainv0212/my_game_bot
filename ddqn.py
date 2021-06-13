@@ -43,7 +43,7 @@ class PERDDDQN(tf.keras.Model):
         super(PERDDDQN, self).__init__()
         self.d1 = tf.keras.layers.Dense(512, activation='relu')
         self.d2 = tf.keras.layers.Dense(128, activation='relu')
-        self.d3 = tf.keras.layers.Dense(64, activation='relu')
+        self.d3 = tf.keras.layers.Dense(128, activation='relu')
         self.v = tf.keras.layers.Dense(1, activation=None)
         self.a = tf.keras.layers.Dense(action_space_num, activation=None)
 

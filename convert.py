@@ -95,6 +95,7 @@ class MyPyNetwork:
 if __name__ == '__main__':
     my_agent = AgentWithNormalMemory()
     my_agent.load_model()
+    my_agent.set_trainable(False)
     print('init agent')
     my_network = MyPyNetwork()
     my_network.from_network(my_agent.q_net)

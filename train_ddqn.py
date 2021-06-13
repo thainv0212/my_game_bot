@@ -12,45 +12,6 @@ import gym_fightingice
 import argparse
 action_space_num = 56
 
-
-class DDDQN(tf.keras.Model):
-    def __init__(self):
-        super(DDDQN, self).__init__()
-        self.d1 = tf.keras.layers.Dense(512, activation='relu')
-        self.d2 = tf.keras.layers.Dense(128, activation='relu')
-        self.d3 = tf.keras.layers.Dense(64, activation='relu')
-        self.v = tf.keras.layers.Dense(1, activation=None)
-        self.a = tf.keras.layers.Dense(action_space_num, activation=None)
-        # x = np.random.normal(size=(6144, ))
-        # x = np.expand_dims(np.array(x).transpose().flatten(), axis=0)
-        # x = tf.convert_to_tensor(x)
-        # _ = self.call(x)
-
-    def call(self, input_data):
-        x = self.d1(input_data)
-        x = self.d2(x)
-        x = self.d3(x)
-        v = self.v(x)
-        a = self.a(x)
-        Q = v + (a - tf.math.reduce_mean(a, axis=1, keepdims=True))
-        return Q
-
-    def advantage(self, state):
-        x = self.d1(state)
-        x = self.d2(x)
-        x = self.d3(x)
-        a = self.a(x)
-        return a
-
-
-def advantage(model, state):
-    x = model.d1(state)
-    x = model.d2(x)
-    x = model.d3(x)
-    a = model.a(x)
-    return a
-
-
 observation_space_shape = (143)
 experience = []
 import json
@@ -69,7 +30,7 @@ def train_with_agent(agent, epsilon):
         print(ex)
         agentoo7 = agent(epsilon=epsilon)
     steps = 400
-    env = gym.make("FightingiceDataNoFrameskip-v0", java_env_path=gym_env_path, freq_restart_java=4)
+    env = gym.make("FightingiceDataFrameskip-v0", java_env_path=gym_env_path, freq_restart_java=4)
     for s in range(steps):
         done = False
         try:
@@ -100,7 +61,7 @@ if __name__ == '__main__':
     # agent = AgentWithPER
     parser = argparse.ArgumentParser()
     parser.add_argument('--epsilon', type=float, default=1.0)
-    parser.add_argument('--agent', type=str, choices=['normal', 'per'], required=True)
+    parser.add_argument('--agent', type=str, choices=['normal', 'per'], default='per')
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
     epsilon = args.epsilon

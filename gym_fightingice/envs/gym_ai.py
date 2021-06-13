@@ -121,8 +121,6 @@ class GymAI(object):
                     reward = (p1_hp_pre-p1_hp_now) - (p2_hp_pre-p2_hp_now)# + (p2_hp_now - p1_hp_now)
         except:
             reward = 0
-        if reward <= 0:
-            reward -= 10
         return reward
 
     def get_obs(self):
