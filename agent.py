@@ -9,6 +9,9 @@ from memory import NormalMemory, PERMemory
 import tensorflow as tf
 from tensorflow.keras.models import load_model, save_model
 
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if len(gpus) > 0:
+    tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1536)])
 
 class AgentWithNormalMemory():
     def __init__(self, gamma=0.1, replace=100, lr=0.01, epsilon=1.0, action_space_num=(56)):
