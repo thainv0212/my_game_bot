@@ -4,7 +4,7 @@ from DQAI.model import MyPyNetwork, MyDenseLayer
 import numpy as np
 class MyAI:
     # action_map = None
-    def __init__(self, gateway, train=False):
+    def __init__(self, gateway, train=False, simulate=True):
         self.gateway = gateway
         self.train = train
         self.my_network = MyPyNetwork()
@@ -12,6 +12,7 @@ class MyAI:
         self.action_map = ActionMap()
         self.isControl = None
         self.simulator = None
+        self.simulate = simulate
 
     def close(self):
         pass
@@ -54,8 +55,8 @@ class MyAI:
 
     def processing(self):
         # Just compute the input for the current frame
-        if not self.isControl:
-            return
+        # if not self.isControl:
+        #     return
         if self.frameData.getEmptyFlag() or self.frameData.getRemainingFramesNumber() <= 0:
             self.isGameJustStarted = True
             return
@@ -72,15 +73,22 @@ class MyAI:
         action = self.my_network(obs)
         action = np.argmax(action)
         action = self.action_map.actionMap[action]
-        print(action)
         self.cc.commandCall(action)
 
     def get_reward(self):
         pass
 
     def get_obs(self):
-        my = self.frameData.getCharacter(self.player)
-        opp = self.frameData.getCharacter(not self.player)
+        curr_obs = self.get_dataframe_obs(self.frameData)
+        if self.simulate:
+            next_frame = self.simulator.simulate(self.frameData, self.player, None, None, 15)
+            next_frame_obs = self.get_dataframe_obs(next_frame)
+            curr_obs = np.append(curr_obs, next_frame_obs)
+        return curr_obs
+
+    def get_dataframe_obs(self, frame_data):
+        my = frame_data.getCharacter(self.player)
+        opp = frame_data.getCharacter(not self.player)
 
         # my information
         myHp = abs(my.getHp() / 400)
@@ -103,7 +111,7 @@ class MyAI:
         oppRemainingFrame = opp.getRemainingFrame() / 70
 
         # time information
-        game_frame_num = self.frameData.getFramesNumber() / 3600
+        game_frame_num = frame_data.getFramesNumber() / 3600
 
         observation = []
 
@@ -154,8 +162,8 @@ class MyAI:
         # time information
         observation.append(game_frame_num)
 
-        myProjectiles = self.frameData.getProjectilesByP1()
-        oppProjectiles = self.frameData.getProjectilesByP2()
+        myProjectiles = frame_data.getProjectilesByP1()
+        oppProjectiles = frame_data.getProjectilesByP2()
 
         if len(myProjectiles) == 2:
             myHitDamage = myProjectiles[0].getHitDamage() / 200.0
@@ -224,7 +232,6 @@ class MyAI:
         observation = np.array(observation, dtype=np.float32)
         observation = np.clip(observation, 0, 1)
         return observation
-
     # This part is mandatory
     class Java:
         implements = ["aiinterface.AIInterface"]
