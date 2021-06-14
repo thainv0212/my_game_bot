@@ -4,8 +4,8 @@ import pickle
 from train_ddqn import AgentWithNormalMemory
 from tensorflow.python.keras.activations import relu, linear
 
-from datetime import datetime
-
+import tensorflow as tf
+tf.config.set_visible_devices([], 'GPU')
 
 class MyDenseLayer:
     weight = None
@@ -67,12 +67,10 @@ class MyPyNetwork:
             self.layers.append(converted_layer)
 
     def __call__(self, x):
-        t1 = datetime.now()
         tmp = x
         for layer in self.layers[:-2]:
             tmp = layer(tmp)
         tmp = self.layers[-1](tmp)
-        print(datetime.now() - t1)
         return tmp
 
     def dump(self, path):
