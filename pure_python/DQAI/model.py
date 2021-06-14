@@ -1,8 +1,10 @@
-from datetime import datetime
 import pickle
+import numpy as np
+# def my_relu(x):
+#     return (x > 0) * x
 
 def my_relu(x):
-    return (x > 0) * x
+    return np.maximum(x, np.zeros(x.shape))
 
 def my_linear(x):
     return x
@@ -61,12 +63,10 @@ class MyPyNetwork:
             self.layers.append(converted_layer)
 
     def __call__(self, x):
-        t1 = datetime.now()
         tmp = x
         for layer in self.layers[:-2]:
             tmp = layer(tmp)
         tmp = self.layers[-1](tmp)
-        print(datetime.now() - t1)
         return tmp
 
     def dump(self, path):
