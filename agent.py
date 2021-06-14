@@ -11,7 +11,9 @@ from tensorflow.keras.models import load_model, save_model
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 0:
-    tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1536)])
+    tf.config.experimental.set_virtual_device_configuration(gpus[0], [
+        tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1536)])
+
 
 class AgentWithNormalMemory():
     def __init__(self, gamma=0.1, replace=100, lr=0.01, epsilon=1.0, action_space_num=(56)):
@@ -83,22 +85,14 @@ class AgentWithNormalMemory():
         self.trainstep += 1
 
     def save_model(self):
-        # self.q_net.save_weights('duel_model', save_format='tf')
-        # self.target_net.save_weights('duel_model_target', save_format='tf')
-        # self.q_net.save_weights("weights", save_format='tf')
         self.q_net.save('duel_model')
         self.target_net.save('duel_model_target', save_format='tf')
-        # self.target_net.save("target_model", save_format='tf')
 
     def load_model(self):
-        # self.q_net.load_weights('duel_model')
-        # self.target_net.load_weights('duel_model_target')
         tmp = load_model("duel_model")
         self.q_net = tmp
         tmp = load_model('duel_model_target')
         self.target_net = tmp
-        # # self.q_net.load_weights("weights")
-        # # self.target_net = load_model("model.h5")
 
     def save_memory(self):
         print('save memory')
@@ -116,6 +110,7 @@ class AgentWithNormalMemory():
         self.q_net.trainable = trainable
         self.target_net.trainable = trainable
 
+
 class AgentWithPER(AgentWithNormalMemory):
     def __init__(self, gamma=0.1, replace=100, lr=0.01, epsilon=1.0, action_space_num=(56)):
         super().__init__()
@@ -127,7 +122,7 @@ class AgentWithPER(AgentWithNormalMemory):
         self.epsilon_decay = 1e-5
         self.replace = replace
         self.trainstep = 0
-        self.memory = PERMemory(capacity=1000)
+        self.memory = PERMemory(capacity=10000)
         self.batch_size = 64
         self.q_net = PERDDDQN()
         self.target_net = PERDDDQN()
@@ -158,18 +153,110 @@ class AgentWithPER(AgentWithNormalMemory):
         # states = np.expand_dims(np.array(state).transpose(), axis=0)
         is_weights = is_weights
         target = self.q_net.predict(states)
-        weight_one = np.ones_like(is_weights)
         next_state_val = self.target_net.predict(next_states)
-        # next_state_val = self.q_net.predict(next_states)
         absolute_errors = np.copy(tf.abs(self.q_net.predict(next_states) - self.target_net.predict(next_states)))
         max_action = np.argmax(self.q_net.predict(next_states), axis=1)
         batch_index = np.arange(self.batch_size, dtype=np.int32)
         q_target = np.copy(target)
         q_target[batch_index, actions] = rewards + self.gamma * next_state_val[batch_index, max_action] * (1 - dones)
         loss = self.q_net.train_on_batch(states, q_target, is_weights)
-        # print('loss on training', loss)
         self.update_epsilon()
+
         # update memory
+        self.memory.batch_update(b_idx, absolute_errors.mean(axis=1))
+        self.trainstep += 1
+
+    def update_mem(self, state, action, reward, next_state, done):
+        experience = state, action, reward, next_state, done
+        self.memory.store(experience)
+
+
+class AgentWithPERAndMultiRewards(AgentWithNormalMemory):
+    def __init__(self, gamma=0.1, replace=100, lr=0.01, epsilon=1.0, action_space_num=(56)):
+        super().__init__()
+        # super().__init__(gamma, replace, lr, epsilon, action_space_num)
+        self.gamma = gamma
+        self.epsilon = epsilon
+        # self.min_epsilon = 0.4
+        self.min_epsilon = 0.1
+        self.epsilon_decay = 1e-5
+        self.replace = replace
+        self.trainstep = 0
+        self.memory = PERMemory(capacity=10000)
+        self.batch_size = 64
+        self.q_net_offensive = PERDDDQN()
+        self.q_net_defensive = PERDDDQN()
+        self.target_net_offensive = PERDDDQN()
+        self.target_net_defensive = PERDDDQN()
+        opt = tf.keras.optimizers.Adam(learning_rate=lr)
+        self.q_net_offensive.compile(loss='mse', optimizer=opt)
+        self.q_net_defensive.compile(loss='mse', optimizer=opt)
+        self.target_net_offensive.compile(loss='mse', optimizer=opt)
+        self.target_net_defensive.compile(loss='mse', optimizer=opt)
+        self.action_space_num = action_space_num
+        try:
+            self.load_model()
+            self.load_memory()
+        except:
+            pass
+
+    def save_model(self):
+        self.q_net_offensive.save('q_net_offensive')
+        self.q_net_defensive.save('q_net_defensive')
+        self.target_net_offensive.save('target_net_offensive')
+        self.target_net_defensive.save('target_net_defensive')
+
+    def load_model(self):
+        tmp = load_model("q_net_offensive")
+        self.q_net_offensive = tmp
+        tmp = load_model('q_net_defensive')
+        self.q_net_defensive = tmp
+        tmp = load_model("target_net_offensive")
+        self.target_net_offensive = tmp
+        tmp = load_model('target_net_defensive')
+        self.target_net_defensive = tmp
+
+    def update_target(self):
+        self.target_net_offensive.set_weights(self.q_net_offensive.get_weights())
+        self.target_net_defensive.set_weights(self.q_net_defensive.get_weights())
+
+    def train(self):
+        self.update_target()
+        b_idx, experiences, is_weights = self.memory.sample(self.batch_size)
+        states = np.array([each[0][0] for each in experiences])
+        actions = np.array([each[0][1] for each in experiences])
+        rewards = np.array([each[0][2] for each in experiences])
+        next_states = np.array([each[0][3] for each in experiences])
+        dones = np.array([each[0][4] for each in experiences])
+
+        rewards_offensive = np.array([s[0] for s in rewards])
+        rewards_defensive = np.array([s[1] for s in rewards])
+
+        # offensive
+        target_offensive = self.q_net_offensive.predict(states)
+        next_states_val_offensive = self.target_net_offensive.predict(next_states)
+        absolute_errors_offensive = np.copy(tf.abs(self.q_net_offensive.predict(next_states) - self.target_net_offensive.predict(next_states)))
+        # defensive
+        target_defensive = self.q_net_defensive.predict(states)
+        next_states_val_defensive = self.target_net_defensive.predict(next_states)
+        absolute_errors_defensive = np.copy(tf.abs(self.target_net_defensive.predict(next_states) - self.target_net_defensive.predict(next_states)))
+        # get max action
+        next_states_val = next_states_val_defensive + next_states_val_offensive
+        max_action = np.argmax(next_states_val, axis=1)
+        batch_index = np.arange(self.batch_size, dtype=np.int32)
+
+        # train for offensive
+        q_target_offensive = np.copy(target_offensive)
+        q_target_offensive[batch_index, actions] = rewards_offensive + self.gamma * next_states_val_offensive[batch_index, max_action] * (1- dones)
+        loss_offensive = self.q_net_offensive.train_on_batch(states, q_target_offensive, is_weights)
+
+        # train for defensive
+        q_target_defensive = np.copy(target_defensive)
+        q_target_defensive[batch_index, actions] = rewards_defensive + self.gamma * next_states_val_defensive[batch_index, max_action] * (1- dones)
+        loss_defensive = self.q_net_defensive.train_on_batch(states, q_target_defensive, is_weights)
+
+        # update memory
+        absolute_errors = absolute_errors_defensive + absolute_errors_offensive
         self.memory.batch_update(b_idx, absolute_errors.mean(axis=1))
         self.trainstep += 1
 

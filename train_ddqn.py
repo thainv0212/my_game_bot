@@ -17,7 +17,7 @@ experience = []
 import json
 import pandas as pd
 from tqdm import tqdm
-from agent import AgentWithNormalMemory, AgentWithPER
+from agent import AgentWithNormalMemory, AgentWithPER, AgentWithPERAndMultiRewards
 from datetime import datetime
 import argcomplete
 
@@ -47,7 +47,10 @@ def train_with_agent(agent, epsilon):
             agentoo7.update_mem(state, action, reward, next_state, done)
             agentoo7.train()
             state = next_state
-            total_reward += reward
+            if isinstance(reward, int):
+                total_reward += reward
+            else:
+                total_reward += sum(reward)
 
             if done:
                 print("total reward after {} episode is {} and epsilon is {}".format(s, total_reward, agentoo7.epsilon))
@@ -60,13 +63,14 @@ if __name__ == '__main__':
     # agent = AgentWithPER
     parser = argparse.ArgumentParser()
     parser.add_argument('--epsilon', type=float, default=1)
-    parser.add_argument('--agent', type=str, choices=['normal', 'per'], default='per')
+    parser.add_argument('--agent', type=str, choices=['normal', 'per', 'per_multi'], default='per_multi')
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
     epsilon = args.epsilon
     agents = {
         'normal': AgentWithNormalMemory,
         'per': AgentWithPER,
+        'per_multi': AgentWithPERAndMultiRewards,
     }
     agent = agents[args.agent]
     train_with_agent(agent, epsilon)
