@@ -1,8 +1,11 @@
 import dill
 import numpy as np
 import pickle
+import types
+import inspect
 from train_ddqn import AgentWithNormalMemory
 from tensorflow.python.keras.activations import relu, linear
+from tensorflow.python.keras.layers.advanced_activations import LeakyReLU
 
 import tensorflow as tf
 tf.config.set_visible_devices([], 'GPU')
@@ -18,22 +21,29 @@ class MyDenseLayer:
     def my_linear(self, x):
         return x
 
+    def my_leaky_relu(self, x):
+        return np.maximum(x, x * 0.1)
 
 
     def __init__(self, layer=None):
         self.activation_functions = {
             relu: 'relu',
-            linear: 'linear'
+            linear: 'linear',
+            LeakyReLU: 'leaky_relu'
         }
         self.activation_remap = {
             'relu': self.my_relu,
-            'linear': self.my_linear
+            'linear': self.my_linear,
+            'leaky_relu': self.my_leaky_relu
         }
         if layer is not None:
             self.weight = layer.weights[0].numpy()
             self.bias = layer.bias.numpy()
             if layer.activation is not None:
-                self.activation = self.activation_functions[layer.activation]
+                if isinstance(layer.activation, types.FunctionType):
+                    self.activation = self.activation_functions[layer.activation]
+                elif inspect.isclass(type(layer.activation)):
+                    self.activation = self.activation_functions[type(layer.activation)]
 
     def __call__(self, x):
         val = x.dot(self.weight) + self.bias
