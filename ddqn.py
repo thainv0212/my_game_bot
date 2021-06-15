@@ -1,14 +1,14 @@
 import tensorflow as tf
-
+from keras.layers import LeakyReLU
 
 class DDDQN(tf.keras.Model):
     def __init__(self, action_space_num=(56)):
         super(DDDQN, self).__init__()
-        self.d1 = tf.keras.layers.Dense(1024, activation='relu')
-        self.d2 = tf.keras.layers.Dense(1024, activation='relu')
-        self.d3 = tf.keras.layers.Dense(1024, activation='relu')
-        self.d4 = tf.keras.layers.Dense(1024, activation='relu')
-        self.d5 = tf.keras.layers.Dense(1024, activation='relu')
+        self.d1 = tf.keras.layers.Dense(1024, activation=LeakyReLU(alpha=0.1))
+        self.d2 = tf.keras.layers.Dense(1024, activation=LeakyReLU(alpha=0.1))
+        self.d3 = tf.keras.layers.Dense(1024, activation=LeakyReLU(alpha=0.1))
+        self.d4 = tf.keras.layers.Dense(1024, activation=LeakyReLU(alpha=0.1))
+        self.d5 = tf.keras.layers.Dense(1024, activation=LeakyReLU(alpha=0.1))
         self.v = tf.keras.layers.Dense(1, activation=None)
         self.a = tf.keras.layers.Dense(action_space_num, activation=None)
         # x = np.random.normal(size=(6144, ))
@@ -45,9 +45,9 @@ def advantage(model, state):
 class PERDDDQN(tf.keras.Model):
     def __init__(self, action_space_num=(56)):
         super(PERDDDQN, self).__init__()
-        self.d1 = tf.keras.layers.Dense(512, activation='relu')
-        self.d2 = tf.keras.layers.Dense(128, activation='relu')
-        self.d3 = tf.keras.layers.Dense(128, activation='relu')
+        self.d1 = tf.keras.layers.Dense(512, activation=LeakyReLU(alpha=0.1))
+        self.d2 = tf.keras.layers.Dense(128, activation=LeakyReLU(alpha=0.1))
+        self.d3 = tf.keras.layers.Dense(128, activation=LeakyReLU(alpha=0.1))
         self.v = tf.keras.layers.Dense(1, activation=None)
         self.a = tf.keras.layers.Dense(action_space_num, activation=None)
 
