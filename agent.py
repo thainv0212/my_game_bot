@@ -29,8 +29,8 @@ class AgentWithNormalMemory():
         opt = tf.keras.optimizers.Adam(learning_rate=lr)
         # self.q_net.compile(loss='mse', optimizer=opt)
         # self.target_net.compile(loss='mse', optimizer=opt)
-        self.q_net.compile(loss=tf.keras.losses.Huber(), optimizer=opt)
-        self.target_net.compile(loss=tf.keras.losses.Huber(), optimizer=opt)
+        self.q_net.compile(loss='mse', optimizer=opt)
+        self.target_net.compile(loss='mse', optimizer=opt)
         self.action_space_num = action_space_num
 
     def act(self, state):

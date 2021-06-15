@@ -19,13 +19,16 @@ class MyDenseLayer:
 
     def my_linear(self, x):
         return x
-        
+    
+    def my_leaky_relu(self, x):
+        return np.maximum(x, x * 0.1)
 
 
     def __init__(self, layer=None):
         self.activation_remap = {
             'relu': self.my_relu,
-            'linear': self.my_linear
+            'linear': self.my_linear,
+            'leaky_relu': self.my_leaky_relu
         }
         if layer is not None:
             self.weight = layer.weights[0].numpy()
