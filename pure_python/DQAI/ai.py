@@ -54,9 +54,9 @@ class MyAI:
         return self.inputKey
 
     def processing(self):
-        # Just compute the input for the current frame
-        # if not self.isControl:
-        #     return
+        # # Just compute the input for the current frame
+        if not self.isControl:
+            return
         if self.frameData.getEmptyFlag() or self.frameData.getRemainingFramesNumber() <= 0:
             self.isGameJustStarted = True
             return
@@ -233,5 +233,46 @@ class MyAI:
         observation = np.clip(observation, 0, 1)
         return observation
     # This part is mandatory
+    class Java:
+        implements = ["aiinterface.AIInterface"]
+
+class MyAIMultiReward(MyAI):
+    def __init__(self, gateway, train=False, simulate=True):
+        super(MyAIMultiReward, self).__init__(gateway, train=train, simulate=simulate)
+        self.gateway = gateway
+        self.train = train
+        self.offensive_network = MyPyNetwork()
+        self.defensive_network = MyPyNetwork()
+        self.offensive_network.load('DQAI/q_offensive.pickle')
+        self.defensive_network.load('DQAI/q_defensive.pickle')
+        self.action_map = ActionMap()
+        self.isControl = None
+        self.simulator = None
+        self.simulate = simulate
+
+    def processing(self):
+        # # Just compute the input for the current frame
+        if not self.isControl:
+            return
+        if self.frameData.getEmptyFlag() or self.frameData.getRemainingFramesNumber() <= 0:
+            self.isGameJustStarted = True
+            return
+
+        if self.cc.getSkillFlag():
+            self.inputKey = self.cc.getSkillKey()
+            return
+
+        self.inputKey.empty()
+        self.cc.skillCancel()
+
+        # Just spam kick
+        obs = self.get_obs()
+        offensive_action = self.offensive_network(obs)
+        defensive_action = self.defensive_network(obs)
+        action = offensive_action + defensive_action
+        action = np.argmax(action)
+        action = self.action_map.actionMap[action]
+        self.cc.commandCall(action)
+
     class Java:
         implements = ["aiinterface.AIInterface"]

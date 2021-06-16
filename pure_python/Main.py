@@ -2,7 +2,7 @@ import sys
 from time import sleep
 from py4j.java_gateway import JavaGateway, GatewayParameters, CallbackServerParameters, get_field
 # from KickAI import KickAI
-from DQAI.ai import MyAI
+from DQAI.ai import MyAI, MyAIMultiReward
 	
 def check_args(args):
 	for i in range(argc):
@@ -11,7 +11,7 @@ def check_args(args):
 			GAME_NUM = int(args[i+1])
 
 def start_game():
-	manager.registerAI("DQAI", MyAI(gateway))
+	manager.registerAI("DQAI", MyAIMultiReward(gateway))
 	print("Start game")
 	
 	game = manager.createGame("ZEN", "ZEN", "DQAI", "MctsAi", GAME_NUM)

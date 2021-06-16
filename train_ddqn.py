@@ -17,7 +17,7 @@ experience = []
 import json
 import pandas as pd
 from tqdm import tqdm
-from agent import AgentWithNormalMemory, AgentWithPER, AgentWithPERAndMultiRewards
+from agent import AgentWithNormalMemory, AgentWithPER, AgentWithPERAndMultiRewards, AgentNormalMultiReward
 from datetime import datetime
 import argcomplete
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     # agent = AgentWithPER
     parser = argparse.ArgumentParser()
     parser.add_argument('--epsilon', type=float, default=1)
-    parser.add_argument('--agent', type=str, choices=['normal', 'per', 'per_multi'], default='per_multi')
+    parser.add_argument('--agent', type=str, choices=['normal', 'per', 'per_multi', 'normal_multi'], default='normal_multi')
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
     epsilon = args.epsilon
@@ -71,11 +71,13 @@ if __name__ == '__main__':
         'normal': AgentWithNormalMemory,
         'per': AgentWithPER,
         'per_multi': AgentWithPERAndMultiRewards,
+        'normal_multi': AgentNormalMultiReward,
     }
     multi_reward_types = {
         'normal': False,
         'per': False,
         'per_multi': True,
+        'normal_multi': True
     }
     agent = agents[args.agent]
     train_with_agent(agent, epsilon, multi_rewards=multi_reward_types[args.agent])
