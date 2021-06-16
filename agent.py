@@ -34,6 +34,7 @@ class AgentWithNormalMemory():
         self.q_net.compile(loss='mse', optimizer=opt)
         self.target_net.compile(loss='mse', optimizer=opt)
         self.action_space_num = action_space_num
+        self.memory_file = 'memory.pkl'
 
     def act(self, state):
         # print('give action with epsilon {}'.format(self.epsilon))
@@ -96,11 +97,11 @@ class AgentWithNormalMemory():
 
     def save_memory(self):
         print('save memory')
-        dill.dump(self.memory, open('memory.pkl', 'wb'))
+        dill.dump(self.memory, open(self.memory_file, 'wb'))
 
     def load_memory(self):
         try:
-            memory = dill.load(open('memory.pkl', 'rb'))
+            memory = dill.load(open(self.memory_file, 'rb'))
             self.memory = memory
             print('load memory')
         except Exception as ex:
@@ -130,6 +131,7 @@ class AgentWithPER(AgentWithNormalMemory):
         self.q_net.compile(loss='mse', optimizer=opt)
         self.target_net.compile(loss='mse', optimizer=opt)
         self.action_space_num = action_space_num
+        self.memory_file = 'memory_per.pkl'
         try:
             self.load_model()
             self.load_memory()
@@ -154,7 +156,7 @@ class AgentWithPER(AgentWithNormalMemory):
         is_weights = is_weights
         target = self.q_net.predict(states)
         next_state_val = self.target_net.predict(next_states)
-        absolute_errors = np.copy(tf.abs(self.q_net.predict(next_states) - self.target_net.predict(next_states)))
+        absolute_errors = np.copy(np.abs(self.q_net.predict(next_states) - self.target_net.predict(next_states)))
         max_action = np.argmax(self.q_net.predict(next_states), axis=1)
         batch_index = np.arange(self.batch_size, dtype=np.int32)
         q_target = np.copy(target)
@@ -194,6 +196,7 @@ class AgentWithPERAndMultiRewards(AgentWithNormalMemory):
         self.target_net_offensive.compile(loss='mse', optimizer=opt)
         self.target_net_defensive.compile(loss='mse', optimizer=opt)
         self.action_space_num = action_space_num
+        self.memory_file = 'memory_multi_per.pkl'
         try:
             self.load_model()
             self.load_memory()
@@ -241,8 +244,9 @@ class AgentWithPERAndMultiRewards(AgentWithNormalMemory):
         next_states_val_defensive = self.target_net_defensive.predict(next_states)
         absolute_errors_defensive = np.copy(tf.abs(self.target_net_defensive.predict(next_states) - self.target_net_defensive.predict(next_states)))
         # get max action
-        next_states_val = next_states_val_defensive + next_states_val_offensive
-        max_action = np.argmax(next_states_val, axis=1)
+        # next_states_val = next_states_val_defensive + next_states_val_offensive
+        next_state_val_q_target = self.target_net_offensive.predict(next_states) + self.target_net_defensive.predict(next_states)
+        max_action = np.argmax(next_state_val_q_target, axis=1)
         batch_index = np.arange(self.batch_size, dtype=np.int32)
 
         # train for offensive
@@ -262,4 +266,6 @@ class AgentWithPERAndMultiRewards(AgentWithNormalMemory):
 
     def update_mem(self, state, action, reward, next_state, done):
         experience = state, action, reward, next_state, done
+        if isinstance(reward, int):
+            print('type int')
         self.memory.store(experience)

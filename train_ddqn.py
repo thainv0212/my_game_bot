@@ -21,7 +21,7 @@ from agent import AgentWithNormalMemory, AgentWithPER, AgentWithPERAndMultiRewar
 from datetime import datetime
 import argcomplete
 
-def train_with_agent(agent, epsilon):
+def train_with_agent(agent, epsilon, multi_rewards):
     agentoo7 = agent(epsilon=epsilon)
     # try:
     #     agentoo7.load_model()
@@ -29,10 +29,10 @@ def train_with_agent(agent, epsilon):
     # except Exception as ex:
     #     print(ex)
     #     agentoo7 = agent(epsilon=epsilon)
-    steps = 400
+    steps = 10
     env_name = 'FightingiceDataNoFrameskip-v0'
     # env_name = 'FightingiceDataFrameskip-v0'
-    env = gym.make(env_name, java_env_path=gym_env_path, freq_restart_java=100)
+    env = gym.make(env_name, java_env_path=gym_env_path, freq_restart_java=5, multi_rewards=multi_rewards)
     for s in range(steps):
         done = False
         state = env.reset(p2='MctsAi')
@@ -72,6 +72,11 @@ if __name__ == '__main__':
         'per': AgentWithPER,
         'per_multi': AgentWithPERAndMultiRewards,
     }
+    multi_reward_types = {
+        'normal': False,
+        'per': False,
+        'per_multi': True,
+    }
     agent = agents[args.agent]
-    train_with_agent(agent, epsilon)
+    train_with_agent(agent, epsilon, multi_rewards=multi_reward_types[args.agent])
 

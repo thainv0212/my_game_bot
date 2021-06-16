@@ -41,7 +41,11 @@ class GymAI(object):
     # please define this method when you use FightingICE version 3.20 or later
     def roundEnd(self, x, y, z):
         print("send round end to {}".format(self.pipe))
-        self.pipe.send([self.obs, 0, True, None])
+        if self.multi_rewards:
+            rewards = [0, 0]
+        else:
+            rewards = 0
+        self.pipe.send([self.obs, rewards, True, None])
         self.just_inited = True
         # request = self.pipe.recv()
         # if request == "close":
