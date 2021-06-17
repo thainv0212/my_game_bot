@@ -29,10 +29,10 @@ def train_with_agent(agent, epsilon, multi_rewards):
     # except Exception as ex:
     #     print(ex)
     #     agentoo7 = agent(epsilon=epsilon)
-    steps = 10
+    steps = 50
     env_name = 'FightingiceDataNoFrameskip-v0'
     # env_name = 'FightingiceDataFrameskip-v0'
-    env = gym.make(env_name, java_env_path=gym_env_path, freq_restart_java=5, multi_rewards=multi_rewards)
+    env = gym.make(env_name, java_env_path=gym_env_path, freq_restart_java=1, multi_rewards=multi_rewards)
     for s in range(steps):
         done = False
         state = env.reset(p2='MctsAi')
@@ -58,12 +58,13 @@ def train_with_agent(agent, epsilon, multi_rewards):
                 print('Save model')
                 agentoo7.save_model()
                 agentoo7.save_memory()
+    env.close()
 if __name__ == '__main__':
     # epsilon = 1.0
     # agent = AgentWithPER
     parser = argparse.ArgumentParser()
     parser.add_argument('--epsilon', type=float, default=1)
-    parser.add_argument('--agent', type=str, choices=['normal', 'per', 'per_multi', 'normal_multi'], default='normal_multi')
+    parser.add_argument('--agent', type=str, choices=['normal', 'per', 'per_multi', 'normal_multi'], default='normal')
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
     epsilon = args.epsilon
