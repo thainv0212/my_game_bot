@@ -135,7 +135,7 @@ class FightingiceEnv_Data_NoFrameskip(gym.Env):
         # create pipe between gym_env_api and python_ai for java env
         server, client = Pipe()
         self.pipe = server
-        self.p1 = GymAI(self.gateway, client, False)
+        self.p1 = GymAI(self.gateway, client, False, multi_rewards=self.multi_rewards)
         self.manager.registerAI(self.p1.__class__.__name__, self.p1)
 
         if isinstance(p2, str):
