@@ -87,7 +87,7 @@ class AgentWithNormalMemory():
 
     def save_model(self):
         self.q_net.save('duel_model')
-        self.target_net.save('duel_model_target', save_format='tf')
+        self.target_net.save('duel_model_target')
 
     def load_model(self):
         tmp = load_model("duel_model")
@@ -137,6 +137,14 @@ class AgentWithPER(AgentWithNormalMemory):
             self.load_memory()
         except:
             pass
+
+    def load_model(self):
+        self.q_net = load_model('duel_model_per')
+        self.target_net = load_model('duel_model_target_per')
+
+    def save_model(self):
+        self.q_net.save('duel_model_per')
+        self.target_net.save('duel_model_target_per')
 
     def train(self):
         if self.memory.tree.data_pointer < self.batch_size:
