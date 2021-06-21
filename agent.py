@@ -81,7 +81,8 @@ class AgentWithNormalMemory():
         batch_index = np.arange(self.batch_size, dtype=np.int32)
         q_target = np.copy(target)
         q_target[batch_index, actions] = rewards + self.gamma * next_state_val[batch_index, max_action] * (1 - dones)
-        self.q_net.train_on_batch(states, q_target)
+        loss = self.q_net.train_on_batch(states, q_target)
+        print('loss', loss)
         self.update_epsilon()
         self.trainstep += 1
 
@@ -170,6 +171,7 @@ class AgentWithPER(AgentWithNormalMemory):
         q_target = np.copy(target)
         q_target[batch_index, actions] = rewards + self.gamma * next_state_val[batch_index, max_action] * (1 - dones)
         loss = self.q_net.train_on_batch(states, q_target, is_weights)
+        print('loss', loss)
         self.update_epsilon()
 
         # update memory
@@ -259,7 +261,7 @@ class AgentWithPERAndMultiRewards(AgentWithNormalMemory):
             np.abs(self.q_net_defensive.predict(next_states) - self.target_net_defensive.predict(next_states)))
         # get max action
         # next_states_val = next_states_val_defensive + next_states_val_offensive
-        next_state_val_q_target = self.target_net_offensive.predict(next_states) + self.target_net_defensive.predict(
+        next_state_val_q_target = self.q_net_offensive.predict(next_states) + self.q_net_defensive.predict(
             next_states)
         max_action = np.argmax(next_state_val_q_target, axis=1)
         batch_index = np.arange(self.batch_size, dtype=np.int32)
@@ -381,7 +383,7 @@ class AgentNormalMultiReward(AgentWithNormalMemory):
             np.abs(self.q_net_defensive.predict(next_states) - self.target_net_defensive.predict(next_states)))
         # get max action
         # next_states_val = next_states_val_defensive + next_states_val_offensive
-        next_state_val_q_target = self.target_net_offensive.predict(next_states) + self.target_net_defensive.predict(
+        next_state_val_q_target = self.q_net_offensive.predict(next_states) + self.q_net_defensive.predict(
             next_states)
         max_action = np.argmax(next_state_val_q_target, axis=1)
         batch_index = np.arange(self.batch_size, dtype=np.int32)
@@ -397,6 +399,7 @@ class AgentNormalMultiReward(AgentWithNormalMemory):
         q_target_defensive[batch_index, actions] = rewards_defensive + self.gamma * next_states_val_defensive[
             batch_index, max_action] * (1 - dones)
         loss_defensive = self.q_net_defensive.train_on_batch(states, q_target_defensive)
+        print('loss', loss_offensive, loss_defensive)
 
         # update memory
         absolute_errors = absolute_errors_defensive + absolute_errors_offensive
