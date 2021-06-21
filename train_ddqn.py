@@ -12,16 +12,10 @@ import gym_fightingice
 import argparse
 action_space_num = 56
 
-observation_space_shape = (143)
-experience = []
-import json
-import pandas as pd
-from tqdm import tqdm
 from agent import AgentWithNormalMemory, AgentWithPER, AgentWithPERAndMultiRewards, AgentNormalMultiReward
 from datetime import datetime
-import argcomplete
 
-def train_with_agent(agent, epsilon, multi_rewards):
+def train_with_agent(agent, epsilon, multi_rewards, steps):
     agentoo7 = agent(epsilon=epsilon)
     # try:
     #     agentoo7.load_model()
@@ -29,7 +23,6 @@ def train_with_agent(agent, epsilon, multi_rewards):
     # except Exception as ex:
     #     print(ex)
     #     agentoo7 = agent(epsilon=epsilon)
-    steps = 50
     env_name = 'FightingiceDataNoFrameskip-v0'
     # env_name = 'FightingiceDataFrameskip-v0'
     env = gym.make(env_name, java_env_path=gym_env_path, freq_restart_java=1, multi_rewards=multi_rewards)
@@ -65,8 +58,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--epsilon', type=float, default=1)
     parser.add_argument('--agent', type=str, choices=['normal', 'per', 'per_multi', 'normal_multi'], default='normal')
-    argcomplete.autocomplete(parser)
+    parser.add_argument('--step', type=int, default=50)
     args = parser.parse_args()
+    print('parsed args', args)
     epsilon = args.epsilon
     agents = {
         'normal': AgentWithNormalMemory,
@@ -81,5 +75,5 @@ if __name__ == '__main__':
         'normal_multi': True
     }
     agent = agents[args.agent]
-    train_with_agent(agent, epsilon, multi_rewards=multi_reward_types[args.agent])
+    train_with_agent(agent, epsilon, multi_rewards=multi_reward_types[args.agent], steps=args.step)
 
