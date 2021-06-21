@@ -256,7 +256,7 @@ class AgentWithPERAndMultiRewards(AgentWithNormalMemory):
         target_defensive = self.q_net_defensive.predict(states)
         next_states_val_defensive = self.target_net_defensive.predict(next_states)
         absolute_errors_defensive = np.copy(
-            np.abs(self.target_net_defensive.predict(next_states) - self.target_net_defensive.predict(next_states)))
+            np.abs(self.q_net_defensive.predict(next_states) - self.target_net_defensive.predict(next_states)))
         # get max action
         # next_states_val = next_states_val_defensive + next_states_val_offensive
         next_state_val_q_target = self.target_net_offensive.predict(next_states) + self.target_net_defensive.predict(
@@ -378,7 +378,7 @@ class AgentNormalMultiReward(AgentWithNormalMemory):
         target_defensive = self.q_net_defensive.predict(states)
         next_states_val_defensive = self.target_net_defensive.predict(next_states)
         absolute_errors_defensive = np.copy(
-            np.abs(self.target_net_defensive.predict(next_states) - self.target_net_defensive.predict(next_states)))
+            np.abs(self.q_net_defensive.predict(next_states) - self.target_net_defensive.predict(next_states)))
         # get max action
         # next_states_val = next_states_val_defensive + next_states_val_offensive
         next_state_val_q_target = self.target_net_offensive.predict(next_states) + self.target_net_defensive.predict(
