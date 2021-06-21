@@ -16,7 +16,7 @@ if len(gpus) > 0:
 
 
 class AgentWithNormalMemory():
-    def __init__(self, gamma=0.1, replace=100, lr=0.01, epsilon=1.0, action_space_num=(56)):
+    def __init__(self, gamma=0.1, replace=100, lr=0.001, epsilon=1.0, action_space_num=(56)):
         self.gamma = gamma
         self.epsilon = epsilon
         # self.min_epsilon = 0.4
@@ -114,7 +114,7 @@ class AgentWithNormalMemory():
 
 
 class AgentWithPER(AgentWithNormalMemory):
-    def __init__(self, gamma=0.1, replace=100, lr=0.01, epsilon=1.0, action_space_num=(56)):
+    def __init__(self, gamma=0.1, replace=100, lr=0.001, epsilon=1.0, action_space_num=(56)):
         super().__init__()
         # super().__init__(gamma, replace, lr, epsilon, action_space_num)
         self.gamma = gamma
@@ -184,7 +184,7 @@ class AgentWithPER(AgentWithNormalMemory):
 
 
 class AgentWithPERAndMultiRewards(AgentWithNormalMemory):
-    def __init__(self, gamma=0.1, replace=100, lr=0.01, epsilon=1.0, action_space_num=(56)):
+    def __init__(self, gamma=0.1, replace=100, lr=0.001, epsilon=1.0, action_space_num=(56)):
         super().__init__()
         # super().__init__(gamma, replace, lr, epsilon, action_space_num)
         self.gamma = gamma
@@ -308,7 +308,7 @@ class AgentWithPERAndMultiRewards(AgentWithNormalMemory):
 
 
 class AgentNormalMultiReward(AgentWithNormalMemory):
-    def __init__(self, gamma=0.1, replace=100, lr=0.01, epsilon=1.0, action_space_num=(56)):
+    def __init__(self, gamma=0.1, replace=100, lr=0.001, epsilon=1.0, action_space_num=(56)):
         super().__init__()
         # super().__init__(gamma, replace, lr, epsilon, action_space_num)
         self.gamma = gamma
