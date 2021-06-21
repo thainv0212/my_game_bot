@@ -82,7 +82,7 @@ class AgentWithNormalMemory():
         q_target = np.copy(target)
         q_target[batch_index, actions] = rewards + self.gamma * next_state_val[batch_index, max_action] * (1 - dones)
         loss = self.q_net.train_on_batch(states, q_target)
-        print('loss', loss)
+        # print('loss', loss)
         self.update_epsilon()
         self.trainstep += 1
 
@@ -171,7 +171,7 @@ class AgentWithPER(AgentWithNormalMemory):
         q_target = np.copy(target)
         q_target[batch_index, actions] = rewards + self.gamma * next_state_val[batch_index, max_action] * (1 - dones)
         loss = self.q_net.train_on_batch(states, q_target, is_weights)
-        print('loss', loss)
+        # print('loss', loss)
         self.update_epsilon()
 
         # update memory
@@ -399,7 +399,7 @@ class AgentNormalMultiReward(AgentWithNormalMemory):
         q_target_defensive[batch_index, actions] = rewards_defensive + self.gamma * next_states_val_defensive[
             batch_index, max_action] * (1 - dones)
         loss_defensive = self.q_net_defensive.train_on_batch(states, q_target_defensive)
-        print('loss', loss_offensive, loss_defensive)
+        # print('loss', loss_offensive, loss_defensive)
 
         # update memory
         absolute_errors = absolute_errors_defensive + absolute_errors_offensive
