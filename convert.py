@@ -3,10 +3,10 @@ import numpy as np
 import pickle
 import types
 import inspect
-from train_ddqn import AgentWithNormalMemory
+from train_ddqn import AgentWithNormalMemory, AgentNormalMultiReward, AgentWithPER, AgentWithPERAndMultiRewards
 from tensorflow.python.keras.activations import relu, linear
 from tensorflow.python.keras.layers.advanced_activations import LeakyReLU
-
+from argparse import ArgumentParser
 import tensorflow as tf
 tf.config.set_visible_devices([], 'GPU')
 
@@ -68,10 +68,12 @@ class MyDenseLayer:
 
 
 class MyPyNetwork:
-    layers = []
+    def __init__(self):
+        self.layers = []
 
     def from_network(self, network):
         layers = network.layers
+        print('from network', len(network.layers), len(self.layers))
         for layer in layers:
             converted_layer = MyDenseLayer(layer)
             self.layers.append(converted_layer)
@@ -101,14 +103,41 @@ class MyPyNetwork:
 
 
 if __name__ == '__main__':
-    my_agent = AgentWithNormalMemory()
+    agents = {
+        'normal': AgentWithNormalMemory,
+        'per': AgentWithPER,
+        'per_multi': AgentWithPERAndMultiRewards,
+        'normal_multi': AgentNormalMultiReward,
+    }
+    multi_reward_types = {
+        'normal': False,
+        'per': False,
+        'per_multi': True,
+        'normal_multi': True
+    }
+    parser = ArgumentParser()
+    parser.add_argument('--agent', type=str, choices=['normal', 'per', 'per_multi', 'normal_multi'], required=True)
+    args = parser.parse_args()
+    Agent = agents[args.agent]
+    print('start converting model for ', Agent)
+    my_agent = Agent()
     my_agent.load_model()
-    my_agent.set_trainable(False)
-    print('init agent')
-    my_network = MyPyNetwork()
-    my_network.from_network(my_agent.q_net)
+    multi_reward = multi_reward_types[args.agent]
     print('convert to numpy weights')
-    my_network.dump('my_network.pickle')
+    if multi_reward:
+        offensive_network = MyPyNetwork()
+        offensive_network.from_network(my_agent.q_net_offensive)
+        offensive_network.dump('q_offensive.pickle')
+        print('q_offensive', len(offensive_network.layers))
+        defensive_network = MyPyNetwork()
+        defensive_network.from_network(my_agent.q_net_defensive)
+        defensive_network.dump('q_defensive.pickle')
+        print('q_defensive', len(defensive_network.layers), len(my_agent.q_net_defensive.layers))
+    else:
+        my_network = MyPyNetwork()
+        my_network.from_network(my_agent.q_net)
+        my_network.dump('my_network.pickle')
+        print('q model')
     # my_network.dump_pkl('my_network.pickle')
     # my_network
-    print('save to file')
+    print('conversion done')

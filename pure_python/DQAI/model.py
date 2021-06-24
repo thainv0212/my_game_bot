@@ -1,13 +1,17 @@
 import pickle
 import numpy as np
+
+
 # def my_relu(x):
 #     return (x > 0) * x
 
 def my_relu(x):
     return np.maximum(x, np.zeros(x.shape))
 
+
 def my_linear(x):
     return x
+
 
 class MyDenseLayer:
     weight = None
@@ -19,10 +23,9 @@ class MyDenseLayer:
 
     def my_linear(self, x):
         return x
-    
+
     def my_leaky_relu(self, x):
         return np.maximum(x, x * 0.1)
-
 
     def __init__(self, layer=None):
         self.activation_remap = {
@@ -56,8 +59,11 @@ class MyDenseLayer:
         layer.bias = data['bias']
         layer.activation = data['activation']
         return layer
+
+
 class MyPyNetwork:
-    layers = []
+    def __init__(self):
+        self.layers = []
 
     def from_network(self, network):
         layers = network.layers

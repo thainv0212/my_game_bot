@@ -3,7 +3,7 @@ from py4j.java_gateway import get_field
 
 
 class GymAI(object):
-    def __init__(self, gateway, pipe, frameskip=True, simulate=True):
+    def __init__(self, gateway, pipe, frameskip=True, simulate=True, multi_rewards=True):
         self.gateway = gateway
         self.pipe = pipe
 
@@ -22,6 +22,7 @@ class GymAI(object):
         self.frameskip = frameskip
         self.simulator = None
         self.simulate = simulate
+        self.multi_rewards = multi_rewards
 
     def close(self):
         pass
@@ -40,7 +41,11 @@ class GymAI(object):
     # please define this method when you use FightingICE version 3.20 or later
     def roundEnd(self, x, y, z):
         print("send round end to {}".format(self.pipe))
-        self.pipe.send([self.obs, 0, True, None])
+        if self.multi_rewards:
+            rewards = [0, 0]
+        else:
+            rewards = 0
+        self.pipe.send([self.obs, rewards, True, None])
         self.just_inited = True
         # request = self.pipe.recv()
         # if request == "close":
@@ -112,6 +117,30 @@ class GymAI(object):
                 self.inputKey = self.cc.getSkillKey()
 
     def get_reward(self):
+        if not self.multi_rewards:
+            return self.get_single_reward()
+        return self.get_multi_rewards()
+
+
+    def get_multi_rewards(self):
+        # offensive rewards
+        reward_offensive = 0
+        reward_defensive = 0
+        if self.pre_framedata.getEmptyFlag() or self.frameData.getEmptyFlag():
+            return [reward_offensive, reward_defensive]
+        p2_hp_pre = self.pre_framedata.getCharacter(False).getHp()
+        p1_hp_pre = self.pre_framedata.getCharacter(True).getHp()
+        p2_hp_now = self.frameData.getCharacter(False).getHp()
+        p1_hp_now = self.frameData.getCharacter(True).getHp()
+        if self.player:
+            reward_offensive = p2_hp_pre - p2_hp_now
+            reward_defensive = - (p1_hp_pre - p1_hp_now)
+        else:
+            reward_offensive = p1_hp_pre - p1_hp_now
+            reward_defensive = - (p2_hp_pre - p2_hp_now)
+        return [reward_offensive, reward_defensive]
+
+    def get_single_reward(self):
         try:
             if self.pre_framedata.getEmptyFlag() or self.frameData.getEmptyFlag():
                 reward = 0

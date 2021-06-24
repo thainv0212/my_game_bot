@@ -4,12 +4,15 @@ from tree import SumTree
 
 
 class NormalMemory():
-    def __init__(self, buffer_size=100000, observation_space_shape=(286)):
+    def __init__(self, buffer_size=100000, observation_space_shape=(286), multi_reward=False):
         self.buffer_size = buffer_size
         total_shape = np.prod(observation_space_shape)
         self.state_mem = np.zeros((self.buffer_size, *(total_shape,)), dtype=np.float32)
         self.action_mem = np.zeros((self.buffer_size), dtype=np.int32)
-        self.reward_mem = np.zeros((self.buffer_size), dtype=np.float32)
+        if not multi_reward:
+            self.reward_mem = np.zeros((self.buffer_size), dtype=np.float32)
+        else:
+            self.reward_mem = np.zeros((self.buffer_size, 2), dtype=np.float32)
         self.next_state_mem = np.zeros((self.buffer_size, *(total_shape,)),
                                        dtype=np.float32)
         self.done_mem = np.zeros((self.buffer_size), dtype=np.bool)
