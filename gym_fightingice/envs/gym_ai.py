@@ -3,7 +3,7 @@ from py4j.java_gateway import get_field
 
 
 class GymAI(object):
-    def __init__(self, gateway, pipe, frameskip=True, simulate=True, multi_rewards=True):
+    def __init__(self, gateway, pipe, frameskip=True, simulate=False, multi_rewards=True):
         self.gateway = gateway
         self.pipe = pipe
 
