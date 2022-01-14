@@ -26,15 +26,15 @@ Evaluation of your sound designs will be done as following:
 <div align="justify">
 Normal people (people with vision) will test your sound design while wearing a blind fold. The total number of people testing you sound design is not static, but rest assure it will not be a very small number, like 3,4 etc. The blind folded people will play against a weak AI, the reason for the AI being weak is that these people are not visually impaired and are not used to playing a game blind folded. Each person will play against the AI 3 times for a sound design and the score will be calculated by how many people were able to defeat the AI and how much health they have left. If they were not able to defeat the AI, the remaining health of the AI will be counted. A more detailed and concrete description of the evaluation process and the calculation of the score will be available soon.</div>
 
-<b><h3>Prizes:</h3></b>
+<h3>Prizes:</h3>
 The prizes for the winners will be announced soon.
-<b><h3>How to submit:</h3></b>
+<h3>How to submit:</h3>
 The details will be announced soon.
-<b><h3>Installation Guide:</h3></b>
+<h3>Installation Guide:</h3>
 The installation guide will be provided as soon as the new platform is finished.
-<b><h3>Submission Date:</h3></b>
+<h3>Submission Date:</h3>
 To be decided.
-<b><h3>Contact Us:</h3></b>
+<h3>Contact Us:</h3>
 https://youtu.be/40ABh5yKJVE
 
 <iframe id="video" width="560" height="315" src="https://www.youtube.com/embed/LgWX2sPZQsE/" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen=""></iframe>
