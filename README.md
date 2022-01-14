@@ -35,7 +35,6 @@ The installation guide will be provided as soon as the new platform is finished.
 <h3>Submission Date:</h3>
 To be decided.
 <h3>Contact Us:</h3>
-https://youtu.be/40ABh5yKJVE
 
 <iframe id="video" width="560" height="315" src="https://www.youtube.com/embed/LgWX2sPZQsE/" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen=""></iframe>
 
